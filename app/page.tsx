@@ -98,6 +98,7 @@ export default function OrdersPage() {
     setFilteredTasks(result);
   }, [selectedCategory, searchQuery, tasks]);
 
+
   const handleTakeOrder = async (taskId: string) => {
     if (!isConnected) {
       setShowWalletConnect(true);
