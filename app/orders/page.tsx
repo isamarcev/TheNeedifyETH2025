@@ -7,7 +7,6 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { ConnectWalletScreen } from '../components/ui/ConnectWalletScreen';
 import { useWallet } from '../context/WalletContext';
-import Link from 'next/link';
 
 const allOrders = [
   {
@@ -130,8 +129,7 @@ export default function OrdersPage() {
     setFilteredOrders(result);
   }, [selectedCategory, searchQuery]);
 
-  const handleTakeOrder = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleTakeOrder = () => {
     if (!isConnected) {
       setShowWalletConnect(true);
     } else {

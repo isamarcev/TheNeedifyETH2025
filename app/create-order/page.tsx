@@ -11,7 +11,7 @@ import { useWallet } from '../context/WalletContext';
 import { useRouter } from 'next/navigation';
 
 export default function CreateOrderPage() {
-  const { isConnected } = useWallet();
+  const { isConnected, walletAddress } = useWallet();
   const router = useRouter();
   const [formData, setFormData] = useState({
     title: '',
@@ -71,9 +71,27 @@ export default function CreateOrderPage() {
     
     setIsSubmitting(true);
     
-    // API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          owner: walletAddress,
+          title: formData.title,
+          description: formData.description,
+          asset: 'USDC',
+          amount: Number(formData.reward),
+          category: 'Development', // You might want to add a category field to the form
+          deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create order');
+      }
+
       router.push('/orders');
     } catch (error) {
       console.error('Error creating order:', error);

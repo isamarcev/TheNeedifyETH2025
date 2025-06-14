@@ -46,7 +46,7 @@ export const BottomNav = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-2 shadow-lg">
       {/* Wallet connection toggle */}
-      <div className="absolute -top-10 right-4 bg-white dark:bg-gray-800 shadow-md rounded-full py-1 px-3 border border-gray-200 dark:border-gray-700 text-xs flex items-center">
+      {/* <div className="absolute -top-10 right-4 bg-white dark:bg-gray-800 shadow-md rounded-full py-1 px-3 border border-gray-200 dark:border-gray-700 text-xs flex items-center">
         <span className={`mr-2 ${isConnected ? 'text-green-500' : 'text-gray-500'}`}>
           {isConnected ? 'Connected' : 'Disconnected'}
         </span>
@@ -65,7 +65,7 @@ export const BottomNav = () => {
             }`}
           />
         </button>
-      </div>
+      </div> */}
 
       <div className="flex justify-around items-center h-16 max-w-md mx-auto">
         {navItems.map((item) => {
