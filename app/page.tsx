@@ -23,6 +23,7 @@ import { Button } from "./components/DemoComponents";
 import { Icon } from "./components/DemoComponents";
 import { Home } from "./components/DemoComponents";
 import { Features } from "./components/DemoComponents";
+import { useAccount } from "wagmi";
 
 function FarcasterContext({ context }: { context: any }) {
   if (!context) return null;
@@ -59,6 +60,7 @@ function FarcasterContext({ context }: { context: any }) {
 
 export default function App() {
   const { setFrameReady, isFrameReady, context } = useMiniKit();
+  const { address } = useAccount();
   const [frameAdded, setFrameAdded] = useState(false);
   const [activeTab, setActiveTab] = useState("home");
 
@@ -70,6 +72,33 @@ export default function App() {
       setFrameReady();
     }
   }, [setFrameReady, isFrameReady]);
+
+  // Create user when wallet is connected
+  useEffect(() => {
+    const createUser = async () => {
+      if (address) {
+        try {
+          const response = await fetch('/api/users', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ address }),
+          });
+          
+          if (!response.ok) {
+            throw new Error('Failed to create user');
+          }
+          
+          console.log('User created/updated in database');
+        } catch (error) {
+          console.error('Error creating user:', error);
+        }
+      }
+    };
+
+    createUser();
+  }, [address]);
 
   const handleAddFrame = useCallback(async () => {
     const frameAdded = await addFrame();

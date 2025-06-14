@@ -51,7 +51,7 @@ export class DBService {
   }): Promise<Task> {
     const tasks = await this.getCollection("tasks");
 
-    const task: Task = {
+    const task: Omit<Task, '_id'> = {
       owner: input.owner,
       title: input.title,
       description: input.description,
@@ -72,14 +72,14 @@ export class DBService {
   static async getMarketTasks(user_address: string): Promise<Task[]> {
     const tasks = await this.getCollection("tasks");
     return await tasks
-      .find({ owner: { $ne: user_address }, executor: null })
+      .find<Task>({ owner: { $ne: user_address }, executor: null })
       .toArray();
   }
 
   static async getUserTasks(user_address: string): Promise<Task[]> {
     const tasks = await this.getCollection("tasks");
     return await tasks
-      .find({
+      .find<Task>({
         $or: [{ owner: user_address }, { executor: user_address }],
       })
       .toArray();
