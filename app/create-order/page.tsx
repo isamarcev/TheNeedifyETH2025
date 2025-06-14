@@ -9,13 +9,15 @@ import { Card } from "../components/ui/Card";
 import { ConnectWalletScreen } from "../components/ui/ConnectWalletScreen";
 import { useWallet } from "../context/WalletContext";
 import { useRouter } from "next/navigation";
-import { useAccount } from "wagmi";
+import { useAccount, useWalletClient } from "wagmi";
 import { useNotification } from "@coinbase/onchainkit/minikit";
 import { TransactionError, TransactionResponse } from "@coinbase/onchainkit/transaction";
+import { transferUSDC } from '../lib/usdc';
 
 export default function CreateOrderPage() {
   const { isConnected, walletAddress } = useWallet();
   const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const router = useRouter();
   const sendNotification = useNotification();
   const [formData, setFormData] = useState({
@@ -31,6 +33,7 @@ export default function CreateOrderPage() {
     reward?: string;
     category?: string;
     deadline?: string;
+    transaction?: string;
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
@@ -131,15 +134,36 @@ export default function CreateOrderPage() {
     e.preventDefault();
 
     if (!validate()) return;
+    if (!walletAddress || !walletClient) {
+      const errorMsg = 'Wallet not connected';
+      setErrors(prev => ({
+        ...prev,
+        transaction: errorMsg
+      }));
+      await sendNotification({
+        title: "Error Creating Order",
+        body: errorMsg
+      });
+      return;
+    }
 
     setIsSubmitting(true);
+    setErrors({});
 
     try {
+      // First, transfer USDC to the server wallet
+      const transactionHash = await transferUSDC(
+        walletAddress as `0x${string}`,
+        Number(formData.reward),
+        walletClient
+      );
+
       // Calculate deadline Date if provided, otherwise use default (14 days)
       const deadlineDate = formData.deadline
         ? new Date(formData.deadline)
         : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
 
+      // After successful transfer, create the task
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: {
@@ -153,11 +177,13 @@ export default function CreateOrderPage() {
           amount: Number(formData.reward),
           category: formData.category,
           deadline: deadlineDate.toISOString(),
+          transactionHash, // Include the transaction hash
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create order");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create order");
       }
 
       setCreatedTaskTitle(formData.title);
@@ -172,9 +198,27 @@ export default function CreateOrderPage() {
 
       setShowSuccessPopup(true);
       setIsSubmitting(false);
+
+      // Send success notification
+      await sendNotification({
+        title: "Order Created!",
+        body: `Your order has been created successfully. Transaction: ${transactionHash}`,
+      });
+
     } catch (error) {
       console.error("Error creating order:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create order';
+      setErrors(prev => ({
+        ...prev,
+        transaction: errorMessage
+      }));
       setIsSubmitting(false);
+
+      // Send error notification
+      await sendNotification({
+        title: "Error Creating Order",
+        body: errorMessage
+      });
     }
   };
 
