@@ -12,7 +12,9 @@ import { useRouter } from "next/navigation";
 
 export default function CreateOrderPage() {
   const { isConnected, walletAddress } = useWallet();
+  const { address } = useAccount();
   const router = useRouter();
+  const sendNotification = useNotification();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -91,6 +93,35 @@ export default function CreateOrderPage() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSuccess = async (response: TransactionResponse) => {
+    const transactionHash = response.transactionReceipts[0].transactionHash;
+    console.log('Transaction successful:', transactionHash);
+
+    await sendNotification({
+      title: "Order Created!",
+      body: `Your order has been created successfully. Transaction: ${transactionHash}`,
+    });
+
+    // Create the order in your database
+    // await createOrder({
+    //   title: formData.title,
+    //   description: formData.description,
+    //   reward: formData.reward,
+    //   transactionHash: transactionHash
+    // });
+
+    router.push('/orders');
+  };
+
+  const handleError = (error: TransactionError) => {
+    console.error('Transaction failed:', error);
+    setErrors(prev => ({
+      ...prev,
+      transaction: error.message || 'Failed to create order'
+    }));
+    setIsSubmitting(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -406,6 +437,18 @@ export default function CreateOrderPage() {
                 Create Order
               </Button>
             </motion.div>
+            {errors.transaction && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+              >
+                <p className="text-red-600 dark:text-red-400 text-sm">
+                  {errors.transaction}
+                </p>
+              </motion.div>
+            )}
           </form>
         </Card>
 
