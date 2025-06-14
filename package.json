@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "checkKeys": "npx tsx ./scripts/gen-keys.ts",
+    "checkKeys": "npx tsx ./scripts/checkKeys.ts",
     "checkConnection": "npx tsx ./scripts/checkConnection.ts"
   },
   "dependencies": {
