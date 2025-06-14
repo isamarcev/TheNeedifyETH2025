@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "checkKeys": "npx tsx ./scripts/checkKeys.ts",
-    "checkConnection": "npx tsx ./scripts/checkConnection.ts"
+    "checkConnection": "npx tsx ./scripts/checkConnection.ts",
+    "example": "node ./scripts/example.js"
   },
   "dependencies": {
     "@coinbase/onchainkit": "latest",
