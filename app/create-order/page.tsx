@@ -9,10 +9,17 @@ import { Card } from "../components/ui/Card";
 import { ConnectWalletScreen } from "../components/ui/ConnectWalletScreen";
 import { useWallet } from "../context/WalletContext";
 import { useRouter } from "next/navigation";
+import { useAccount, useWalletClient } from "wagmi";
+import { useNotification } from "@coinbase/onchainkit/minikit";
+import { TransactionError, TransactionResponse } from "@coinbase/onchainkit/transaction";
+import { transferUSDC } from '../lib/usdc';
 
 export default function CreateOrderPage() {
   const { isConnected, walletAddress } = useWallet();
+  const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const router = useRouter();
+  const sendNotification = useNotification();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -26,6 +33,7 @@ export default function CreateOrderPage() {
     reward?: string;
     category?: string;
     deadline?: string;
+    transaction?: string;
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
@@ -93,19 +101,69 @@ export default function CreateOrderPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleSuccess = async (response: TransactionResponse) => {
+    const transactionHash = response.transactionReceipts[0].transactionHash;
+    console.log('Transaction successful:', transactionHash);
+
+    await sendNotification({
+      title: "Order Created!",
+      body: `Your order has been created successfully. Transaction: ${transactionHash}`,
+    });
+
+    // Create the order in your database
+    // await createOrder({
+    //   title: formData.title,
+    //   description: formData.description,
+    //   reward: formData.reward,
+    //   transactionHash: transactionHash
+    // });
+
+    router.push('/orders');
+  };
+
+  const handleError = (error: TransactionError) => {
+    console.error('Transaction failed:', error);
+    setErrors(prev => ({
+      ...prev,
+      transaction: error.message || 'Failed to create order'
+    }));
+    setIsSubmitting(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validate()) return;
+    if (!walletAddress || !walletClient) {
+      const errorMsg = 'Wallet not connected';
+      setErrors(prev => ({
+        ...prev,
+        transaction: errorMsg
+      }));
+      await sendNotification({
+        title: "Error Creating Order",
+        body: errorMsg
+      });
+      return;
+    }
 
     setIsSubmitting(true);
+    setErrors({});
 
     try {
+      // First, transfer USDC to the server wallet
+      const transactionHash = await transferUSDC(
+        walletAddress as `0x${string}`,
+        Number(formData.reward),
+        walletClient
+      );
+
       // Calculate deadline Date if provided, otherwise use default (14 days)
       const deadlineDate = formData.deadline
         ? new Date(formData.deadline)
         : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
 
+      // After successful transfer, create the task
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: {
@@ -119,11 +177,13 @@ export default function CreateOrderPage() {
           amount: Number(formData.reward),
           category: formData.category,
           deadline: deadlineDate.toISOString(),
+          transactionHash, // Include the transaction hash
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create order");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create order");
       }
 
       setCreatedTaskTitle(formData.title);
@@ -138,9 +198,27 @@ export default function CreateOrderPage() {
 
       setShowSuccessPopup(true);
       setIsSubmitting(false);
+
+      // Send success notification
+      await sendNotification({
+        title: "Order Created!",
+        body: `Your order has been created successfully. Transaction: ${transactionHash}`,
+      });
+
     } catch (error) {
       console.error("Error creating order:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create order';
+      setErrors(prev => ({
+        ...prev,
+        transaction: errorMessage
+      }));
       setIsSubmitting(false);
+
+      // Send error notification
+      await sendNotification({
+        title: "Error Creating Order",
+        body: errorMessage
+      });
     }
   };
 
@@ -406,6 +484,18 @@ export default function CreateOrderPage() {
                 Create Order
               </Button>
             </motion.div>
+            {/* {errors.transaction && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+              >
+                <p className="text-red-600 dark:text-red-400 text-sm">
+                  {errors.transaction}
+                </p>
+              </motion.div>
+            )} */}
           </form>
         </Card>
 

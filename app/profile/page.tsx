@@ -34,6 +34,34 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userMetadata, setUserMetadata] = useState<{
+    full_name: string;
+    avatar?: string;
+    forecaster_id?: string;
+    forecaster_nickname?: string;
+  } | null>(null);
+
+  // Fetch user metadata
+  useEffect(() => {
+    async function fetchUserMetadata() {
+      if (!walletAddress) return;
+
+      try {
+        const response = await fetch(`/api/users?address=${walletAddress}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch user metadata");
+        }
+        const data = await response.json();
+        setUserMetadata(data);
+      } catch (err) {
+        console.error("Error fetching user metadata:", err);
+      }
+    }
+
+    if (isConnected && walletAddress) {
+      fetchUserMetadata();
+    }
+  }, [isConnected, walletAddress]);
 
   // Fetch user tasks
   useEffect(() => {
@@ -266,13 +294,21 @@ export default function ProfilePage() {
             <Card className="sticky top-24">
               <div className="flex flex-col items-center text-center">
                 <div className="w-20 h-20 rounded-full bg-yellow-400 flex items-center justify-center text-2xl font-bold text-gray-900 mb-4">
-                  {walletAddress ? walletAddress.charAt(2).toUpperCase() : "?"}
+                  {userMetadata?.avatar ? (
+                    <img
+                      src={userMetadata.avatar}
+                      alt={userMetadata.full_name}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    walletAddress ? walletAddress.charAt(2).toUpperCase() : "?"
+                  )}
                 </div>
 
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-                  {walletAddress
+                  {userMetadata?.full_name || (walletAddress
                     ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
-                    : "Unknown User"}
+                    : "Unknown User")}
                 </h2>
 
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 break-all max-w-full overflow-hidden">

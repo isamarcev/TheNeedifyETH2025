@@ -1,4 +1,4 @@
-import { MongoClient, ObjectId } from "mongodb";
+import { MongoClient, ObjectId, Document } from "mongodb";
 import { User, Task, UserMetadata } from "./types";
 import { fetchUserMetadataFromForecaster } from "./forecasterMock";
 
@@ -36,21 +36,18 @@ async function getClient(): Promise<MongoClient> {
 }
 
 export class DBService {
-  static async getCollection(name: string) {
-    const db = (await getClient()).db(DB_NAME);
-    return db.collection(name);
+  static async getCollection<T extends Document>(name: string) {
+    const client = await getClient();
+    return client.db(DB_NAME).collection<T>(name);
   }
 
-  static async cleanup() {
-    if (client) {
-      await client.close();
-      client = null;
-      console.log('MongoDB connection closed');
-    }
+  static async getUser(address: string): Promise<User | null> {
+    const users = await this.getCollection<User>("users");
+    return users.findOne({ address });
   }
 
   static async getOrCreateUser(address: string, metadata: UserMetadata): Promise<User> {
-    const users = await this.getCollection("users");
+    const users = await this.getCollection<User>("users");
     let user = await users.findOne<User>({ address });
 
     if (!user) {
