@@ -9,10 +9,30 @@ import { Card } from '../components/ui/Card';
 import { ConnectWalletScreen } from '../components/ui/ConnectWalletScreen';
 import { useWallet } from '../context/WalletContext';
 import { useRouter } from 'next/navigation';
+import {
+  Transaction,
+  TransactionButton,
+  TransactionToast,
+  TransactionToastAction,
+  TransactionToastIcon,
+  TransactionToastLabel,
+  TransactionError,
+  TransactionResponse,
+  TransactionStatusAction,
+  TransactionStatusLabel,
+  TransactionStatus,
+} from "@coinbase/onchainkit/transaction";
+import { useNotification } from "@coinbase/onchainkit/minikit";
+import { useAccount } from "wagmi";
+
+// USDC contract address on Polygon
+const USDC_CONTRACT_ADDRESS = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
 
 export default function CreateOrderPage() {
   const { isConnected, walletAddress } = useWallet();
+  const { address } = useAccount();
   const router = useRouter();
+  const sendNotification = useNotification();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -22,6 +42,7 @@ export default function CreateOrderPage() {
     title?: string;
     description?: string;
     reward?: string;
+    transaction?: string;
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -62,6 +83,35 @@ export default function CreateOrderPage() {
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSuccess = async (response: TransactionResponse) => {
+    const transactionHash = response.transactionReceipts[0].transactionHash;
+    console.log('Transaction successful:', transactionHash);
+
+    await sendNotification({
+      title: "Order Created!",
+      body: `Your order has been created successfully. Transaction: ${transactionHash}`,
+    });
+
+    // Create the order in your database
+    // await createOrder({
+    //   title: formData.title,
+    //   description: formData.description,
+    //   reward: formData.reward,
+    //   transactionHash: transactionHash
+    // });
+
+    router.push('/orders');
+  };
+
+  const handleError = (error: TransactionError) => {
+    console.error('Transaction failed:', error);
+    setErrors(prev => ({
+      ...prev,
+      transaction: error.message || 'Failed to create order'
+    }));
+    setIsSubmitting(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -191,21 +241,47 @@ export default function CreateOrderPage() {
               transition={{ duration: 0.5, delay: 0.4 }}
               className="mt-8 flex justify-end"
             >
-              <Button
-                variant="primary"
-                type="submit"
-                loading={isSubmitting}
-                icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                }
-              >
-                Create Order
-              </Button>
+              {address ? (
+                <Transaction
+                  calls={[
+                    {
+                      to: USDC_CONTRACT_ADDRESS,
+                      data: "0xa9059cbb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", // This will be replaced with actual transfer data
+                      value: BigInt(0),
+                    },
+                  ]}
+                  onSuccess={handleSuccess}
+                  onError={handleError}
+                >
+                  <TransactionButton />
+                  <TransactionStatus>
+                    <TransactionStatusAction />
+                    <TransactionStatusLabel />
+                  </TransactionStatus>
+                  <TransactionToast className="mb-4">
+                    <TransactionToastIcon />
+                    <TransactionToastLabel />
+                    <TransactionToastAction />
+                  </TransactionToast>
+                </Transaction>
+              ) : (
+                <p className="text-yellow-400 text-sm text-center mt-2">
+                  Connect your wallet to create an order
+                </p>
+              )}
             </motion.div>
+            {errors.transaction && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+              >
+                <p className="text-red-600 dark:text-red-400 text-sm">
+                  {errors.transaction}
+                </p>
+              </motion.div>
+            )}
           </form>
         </Card>
 
