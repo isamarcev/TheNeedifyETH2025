@@ -47,6 +47,7 @@ export const BottomNav = () => {
   
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-2 shadow-lg">
+
       {/* Wallet connection status */}
       <div className="absolute -top-10 right-4 bg-white dark:bg-gray-800 shadow-md rounded-full py-1 px-3 border border-gray-200 dark:border-gray-700 text-xs flex items-center">
         <span className={`mr-2 ${isConnected ? 'text-green-500' : 'text-gray-500'}`}>
@@ -56,7 +57,27 @@ export const BottomNav = () => {
           <WalletButton />
         </div>
       </div>
-
+      {/* Wallet connection toggle */}
+      {/* <div className="absolute -top-10 right-4 bg-white dark:bg-gray-800 shadow-md rounded-full py-1 px-3 border border-gray-200 dark:border-gray-700 text-xs flex items-center">
+        <span className={`mr-2 ${isConnected ? 'text-green-500' : 'text-gray-500'}`}>
+          {isConnected ? 'Connected' : 'Disconnected'}
+        </span>
+        <button
+          onClick={isConnected ? disconnectWallet : connectWallet}
+          className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+            isConnected ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
+          }`}
+        >
+          <span className="sr-only">
+            {isConnected ? 'Disconnect wallet' : 'Connect wallet'}
+          </span>
+          <span
+            className={`pointer-events-none relative inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+              isConnected ? 'translate-x-4' : 'translate-x-0'
+            }`}
+          />
+        </button>
+      </div> */}
       <div className="flex justify-around items-center h-16 max-w-md mx-auto">
         {navItems.map((item) => {
           // Determine if this nav item should be active
