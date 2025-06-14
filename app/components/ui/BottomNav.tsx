@@ -110,15 +110,15 @@ export const BottomNav = () => {
             >
               <div className={`flex flex-col items-center transition-colors duration-300 ${
                 isActive 
-                  ? 'text-yellow-500' 
-                  : 'text-gray-500 dark:text-gray-400'
+                  ? 'text-gray-800' 
+                  : 'text-gray-400 dark:text-gray-400'
               }`}>
                 <div className="relative">
                   {item.icon}
                   {isActive && (
                     <motion.div
                       layoutId="bottomNavIndicator"
-                      className="absolute -bottom-1 left-0 right-0 mx-auto w-1.5 h-1.5 bg-yellow-500 rounded-full"
+                      className="absolute -bottom-1 left-0 right-0 mx-auto w-1.5 h-1.5 bg-yellow-400 rounded-full"
                       transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     />
                   )}
