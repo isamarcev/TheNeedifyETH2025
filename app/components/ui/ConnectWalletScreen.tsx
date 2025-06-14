@@ -1,14 +1,22 @@
 "use client";
 
 import { motion } from 'framer-motion';
-import { Button } from './Button';
 import { useEffect, useState } from 'react';
+import { useWallet } from '../../context/WalletContext';
 
 export const ConnectWalletScreen = () => {
   const [animate, setAnimate] = useState(false);
+  const [wasConnected, setWasConnected] = useState(false);
+  const { WalletButton } = useWallet();
   
   useEffect(() => {
     setAnimate(true);
+    
+    // Check if we were previously connected
+    if (typeof window !== 'undefined') {
+      const storedConnection = localStorage.getItem('walletConnected');
+      setWasConnected(storedConnection === 'true');
+    }
   }, []);
 
   return (
@@ -39,7 +47,7 @@ export const ConnectWalletScreen = () => {
           transition={{ delay: 0.4, duration: 0.6 }}
           className="text-2xl font-bold text-gray-900 dark:text-white mb-3"
         >
-          Connect Your Wallet
+          {wasConnected ? 'Reconnect Your Wallet' : 'Connect Your Wallet'}
         </motion.h1>
         
         <motion.p
@@ -48,27 +56,18 @@ export const ConnectWalletScreen = () => {
           transition={{ delay: 0.6, duration: 0.6 }}
           className="text-gray-600 dark:text-gray-400 mb-8"
         >
-          You need to connect your wallet to access this feature and start using Needify.
+          {wasConnected
+            ? 'Your session has expired. Please reconnect your wallet to continue.'
+            : 'You need to connect your wallet to access this feature and start using Needify.'}
         </motion.p>
         
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: animate ? 1 : 0, y: animate ? 0 : 20 }}
           transition={{ delay: 0.8, duration: 0.6 }}
+          className="flex justify-center"
         >
-          <Button
-            variant="primary"
-            size="lg"
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
-                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
-                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
-              </svg>
-            }
-          >
-            Connect Wallet
-          </Button>
+          <WalletButton />
         </motion.div>
         
         <motion.div
