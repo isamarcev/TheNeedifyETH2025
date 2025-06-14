@@ -171,7 +171,8 @@ class HelloNitrolite {
       network: CONFIG.network,
       rpcUrl: CONFIG.rpcUrl,
       clearNodeUrl: CONFIG.clearNodeUrl,
-      publicClient: CONFIG.rpcUrl
+      publicClient: CONFIG.rpcUrl, 
+      walletClient:
     });
 
     console.log("Client initialized");
