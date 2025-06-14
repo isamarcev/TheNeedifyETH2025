@@ -30,10 +30,14 @@ import { YellowClient } from "@/lib/yellow-wrapper";
   const sessionKey =
     "0xdce59f3d1db0a761ed881d425ff4f816f8e58f59130b9f485d9e97a847cb894f";
   const sessionWallet = privateKeyToAccount(sessionKey);
-  let client = new YellowClient("wss://clearnet.yellow.com/ws", serverWallet, sessionWallet);
-  client.ensureConnection();
-  client.authentificate(10);
-  // client.authentificate(10);
+  let client = new YellowClient(
+    "wss://clearnet.yellow.com/ws",
+    serverWallet,
+    sessionWallet
+  );
+  await client.authentificate(10);
+  console.log("\n\n\n");
+
 
   // // Initialize WebSocket connection
   // const WS_URL = "wss://clearnet.yellow.com/ws"; // Replace with your actual WebSocket server URL
@@ -114,14 +118,6 @@ import { YellowClient } from "@/lib/yellow-wrapper";
   //       case RPCMethod.AuthVerify:
   //         console.log("Authentificated!");
   //         console.log(message.params.jwtToken);
-
-  //         // Create and send the ledger balances request
-  //         let getLedgerBalancesRequest = await createGetLedgerBalancesMessage(
-  //           messageSigner,
-  //           wallet.address
-  //         );
-
-  //         ws.send(getLedgerBalancesRequest);
   //         break;
   //     }
   //   } catch (err) {

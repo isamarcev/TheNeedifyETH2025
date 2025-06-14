@@ -1,5 +1,14 @@
-import { AuthRequest, createAuthRequestMessage } from "@erc7824/nitrolite";
-import { Address, PrivateKeyAccount } from "viem";
+import {
+  AuthRequest,
+  AuthVerifyRPCResponseParams,
+  createAuthRequestMessage,
+  createAuthVerifyMessage,
+  createEIP712AuthMessageSigner,
+  parseRPCResponse,
+  RPCMethod,
+} from "@erc7824/nitrolite";
+import { Address, createWalletClient, http, PrivateKeyAccount } from "viem";
+import { mainnet } from "viem/chains";
 
 export class YellowClient {
   private ws: WebSocket;
@@ -19,10 +28,14 @@ export class YellowClient {
 
     this.connection = new Promise((resolve) => {
       this.ws.onopen = () => {
-        console.log("connected")
+        console.log("connected");
         resolve(true);
       };
     });
+
+    this.ws.onerror = (err) => {
+      console.log("ERROR: ", err);
+    };
   }
 
   async ensureConnection() {
@@ -30,83 +43,75 @@ export class YellowClient {
   }
 
   async authentificate(expireHour: number) {
+    await this.connection;
     const authMsg: AuthRequest = {
       wallet: this.serverKeypair.address,
-      participant: this.sessionKey.address,
-      app_name: "some-domain",
+      participant: this.serverKeypair.address,
+      app_name: "yellow-client",
       expire: String(expireHour), // 1 hour expiration
       scope: "console",
       application: this.sessionKey.address,
       allowances: [],
     };
 
+    const walletClient = createWalletClient({
+      account: this.serverKeypair,
+      chain: mainnet,
+      transport: http(),
+    });
+
     const authRequestMsg = await createAuthRequestMessage(authMsg);
 
+    let promise = new Promise<AuthVerifyRPCResponseParams>((resolve) => {
+      this.ws.onmessage = async (event) => {
+        try {
+          const message = parseRPCResponse(event.data);
+          console.log("Parsed message:", message);
+          switch (message.method) {
+            case RPCMethod.AuthChallenge:
+              console.log("Auth challenge received");
+              const messageEipSigner = createEIP712AuthMessageSigner(
+                walletClient,
+                {
+                  scope: authMsg.scope!,
+                  application: authMsg.application!,
+                  participant: authMsg.participant,
+                  expire: authMsg.expire!,
+                  allowances: authMsg.allowances.map(a => ({
+                    asset: a.symbol,
+                    amount: a.amount,
+                  })),
+                },
+                {
+                  name: "yellow-client",
+                }
+              );
+
+              const authVerifyMessage = await createAuthVerifyMessage(
+                messageEipSigner,
+                message
+              );
+
+              this.ws.send(authVerifyMessage);
+              console.log("Auth verify message sent");
+              break;
+            case RPCMethod.AuthVerify:
+              console.log("Auth verification received");
+              resolve(message.params);
+              break;
+            default:
+              console.log("Unhandled message type:", message.method);
+          }
+        } catch (err) {
+          // console.error("Error handling message:", err);
+        }
+      };
+    });
+
     this.ws.send(authRequestMsg);
+    console.log("Auth request message sent");
 
-    // this.ws.onmessage = async (event) => {
-    //   try {
-    //     const message = parseRPCResponse(event.data);
-    //     console.log("message", message);
-    //     switch (message.method) {
-    //       case RPCMethod.AuthChallenge:
-    //         console.log("Received auth chg");
-    //         const eipSigner = createEIP712AuthMessageSigner(
-    //           client,
-    //           {
-    //             scope: authMsgInner.scope!,
-    //             application: authMsgInner.application!,
-    //             participant: authMsgInner.participant,
-    //             expire: authMsgInner.expire!,
-    //             allowances: [],
-    //           },
-    //           {
-    //             name: "some-domain",
-    //           }
-    //         );
-
-    //         console.log(eipSigner);
-    //         console.log({
-    //           allowances: authMsgInner.allowances.map((x) => ({
-    //             asset: x.symbol,
-    //             amount: x.amount,
-    //           })),
-    //           application: authMsgInner.application!,
-    //           expire: authMsgInner.expire!,
-    //           participant: authMsgInner.participant,
-    //           scope: authMsgInner.scope!,
-    //         });
-
-    //         const authVerifyMessage = await createAuthVerifyMessage(
-    //           eipSigner,
-    //           message
-    //         );
-
-    //         ws.send(authVerifyMessage);
-    //         console.log("sended");
-    //         break;
-    //       case RPCMethod.AuthVerify:
-    //         console.log("Authentificated!");
-    //         console.log(message.params.jwtToken);
-
-    //         // Create and send the ledger balances request
-    //         let getLedgerBalancesRequest = await createGetLedgerBalancesMessage(
-    //           messageSigner,
-    //           wallet.address
-    //         );
-
-    //         ws.send(getLedgerBalancesRequest);
-    //         break;
-    //     }
-    //   } catch (err) {
-    //     console.log(err);
-    //   }
-    // };
-
-    // this.ws.onerror = (err) => {
-    //   console.log("ERROR:");
-    //   console.log(err);
-    // };
+    return promise;
   }
 
   async createAppSession(serverKey: PrivateKeyAccount, user: Address) {}
