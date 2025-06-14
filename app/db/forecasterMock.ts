@@ -1,9 +1,6 @@
-export async function fetchUserMetadataFromForecaster(address: string): Promise<{
-  full_name: string;
-  avatar?: string;
-  forecaster_id?: string;
-  forecaster_nickname?: string;
-}> {
+import { UserMetadata } from "./types";
+
+export async function fetchUserMetadataFromForecaster(address: string): Promise<UserMetadata> {
   // Мокаем внешнюю интеграцию
   return {
     full_name: `User ${address.slice(2, 6)}`,

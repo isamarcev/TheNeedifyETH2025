@@ -9,6 +9,9 @@ import { Card } from "../components/ui/Card";
 import { ConnectWalletScreen } from "../components/ui/ConnectWalletScreen";
 import { useWallet } from "../context/WalletContext";
 import { useRouter } from "next/navigation";
+import { useAccount } from "wagmi";
+import { useNotification } from "@coinbase/onchainkit/minikit";
+import { TransactionError, TransactionResponse } from "@coinbase/onchainkit/transaction";
 
 export default function CreateOrderPage() {
   const { isConnected, walletAddress } = useWallet();
@@ -437,7 +440,7 @@ export default function CreateOrderPage() {
                 Create Order
               </Button>
             </motion.div>
-            {errors.transaction && (
+            {/* {errors.transaction && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -448,7 +451,7 @@ export default function CreateOrderPage() {
                   {errors.transaction}
                 </p>
               </motion.div>
-            )}
+            )} */}
           </form>
         </Card>
 
