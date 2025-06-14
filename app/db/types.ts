@@ -12,6 +12,7 @@ export interface Task {
   owner: string;
   title: string;
   description: string;
+  category: string;
   asset: string;
   amount: number;
   deadline?: Date | null;

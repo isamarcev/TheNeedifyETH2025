@@ -47,6 +47,7 @@ export class DBService {
     description: string;
     asset: string;
     amount: number;
+    category: string;
     deadline?: Date | null;
   }): Promise<Task> {
     const tasks = await this.getCollection("tasks");
@@ -62,6 +63,7 @@ export class DBService {
       taken_at: null,
       owner_approved: false,
       executor_approved: false,
+      category: input.category,
       created_at: new Date(),
     };
 
