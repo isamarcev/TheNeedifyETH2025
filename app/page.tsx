@@ -28,7 +28,7 @@ import { useAccount } from "wagmi";
 function FarcasterContext({ context }: { context: any }) {
   if (!context) return null;
   
-  console.log('Farcaster Context:', context);
+  // console.log('Farcaster Context:', context);
   
   const handleOpenProfile = () => {
     console.log('Client:', context?.client);
@@ -76,14 +76,25 @@ export default function App() {
   // Create user when wallet is connected
   useEffect(() => {
     const createUser = async () => {
-      if (address) {
+      if (address ) {
         try {
+          // console.log('Farcaster client context:', context.client);
+          // console.log('Farcaster user context:', context.user);
+          
+          // We'll update this once we see the actual structure
+          const metadata = {
+            full_name: context?.user?.displayName || '',
+            avatar: context?.user?.pfpUrl || '',
+            forecaster_id: context?.user?.fid?.toString() || '',
+            forecaster_nickname: context?.user?.username || '',
+          };
+
           const response = await fetch('/api/users', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ address }),
+            body: JSON.stringify({ address, metadata }),
           });
           
           if (!response.ok) {
@@ -98,7 +109,7 @@ export default function App() {
     };
 
     createUser();
-  }, [address]);
+  }, [address, context?.client]);
 
   const handleAddFrame = useCallback(async () => {
     const frameAdded = await addFrame();

@@ -1,18 +1,38 @@
 import { MongoClient, ObjectId } from "mongodb";
-import { User, Task } from "./types";
+import { User, Task, UserMetadata } from "./types";
 import { fetchUserMetadataFromForecaster } from "./forecasterMock";
 
 const MONGO_URI = "mongodb://localhost:27017";
 const DB_NAME = "needify";
 
-let client: MongoClient;
+let client: MongoClient | null = null;
+let isConnecting = false;
 
 async function getClient(): Promise<MongoClient> {
-  if (!client) {
+  if (client) {
+    return client;
+  }
+
+  if (isConnecting) {
+    // Wait for the connection to be established
+    while (isConnecting) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    return client!;
+  }
+
+  try {
+    isConnecting = true;
     client = new MongoClient(MONGO_URI);
     await client.connect();
+    console.log('Connected to MongoDB');
+    return client;
+  } catch (error) {
+    console.error('Failed to connect to MongoDB:', error);
+    throw error;
+  } finally {
+    isConnecting = false;
   }
-  return client;
 }
 
 export class DBService {
@@ -21,12 +41,19 @@ export class DBService {
     return db.collection(name);
   }
 
-  static async getOrCreateUser(address: string): Promise<User> {
+  static async cleanup() {
+    if (client) {
+      await client.close();
+      client = null;
+      console.log('MongoDB connection closed');
+    }
+  }
+
+  static async getOrCreateUser(address: string, metadata: UserMetadata): Promise<User> {
     const users = await this.getCollection("users");
     let user = await users.findOne<User>({ address });
 
     if (!user) {
-      const metadata = await fetchUserMetadataFromForecaster(address);
       user = {
         address,
         full_name: metadata.full_name,
@@ -36,6 +63,20 @@ export class DBService {
         created_at: new Date(),
       };
       await users.insertOne(user);
+    } else {
+      // Update existing user with new metadata
+      await users.updateOne(
+        { address },
+        {
+          $set: {
+            full_name: metadata.full_name,
+            avatar: metadata.avatar,
+            forecaster_id: metadata.forecaster_id,
+            forecaster_nickname: metadata.forecaster_nickname,
+          },
+        }
+      );
+      user = await users.findOne<User>({ address }) as User;
     }
 
     return user;

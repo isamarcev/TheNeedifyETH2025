@@ -1,9 +1,16 @@
+export interface UserMetadata {
+  full_name: string;
+  avatar: string;
+  forecaster_id: string;
+  forecaster_nickname: string;
+}
+
 export interface User {
   address: string;
-  full_name?: string;
-  avatar?: string;
-  forecaster_id?: string;
-  forecaster_nickname?: string;
+  full_name: string;
+  avatar: string;
+  forecaster_id: string;
+  forecaster_nickname: string;
   created_at: Date;
 }
 
@@ -15,7 +22,7 @@ export interface Task {
   category: string;
   asset: string;
   amount: number;
-  deadline?: Date | null;
+  deadline: Date | null;
   executor: string | null;
   taken_at: Date | null;
   owner_approved: boolean;
