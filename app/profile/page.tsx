@@ -7,10 +7,8 @@ import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { ConnectWalletScreen } from "../components/ui/ConnectWalletScreen";
 import { useWallet } from "../context/WalletContext";
-import Link from "next/link";
 import { TaskDetailsModal } from "../components/ui/TaskDetailsModal";
 
-// Interface for Task type
 interface Task {
   _id: string;
   owner: string;
@@ -28,72 +26,6 @@ interface Task {
   channel_id?: string;
 }
 
-// // Mock data for profile page
-// const mockUserData = {
-//   address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-//   username: "web3_builder.eth",
-//   avatar: "/placeholder.jpg",
-//   joinedDate: "May 2023",
-//   stats: {
-//     ordersCreated: 12,
-//     ordersCompleted: 8,
-//     ordersInProgress: 3,
-//     totalEarned: 4850,
-//   }
-// };
-
-// // Mock orders data
-// const createdOrders = [
-//   {
-//     id: 101,
-//     title: "Design Tokenomics Dashboard",
-//     description: "Looking for a designer to create a dashboard for tracking token metrics and analytics.",
-//     reward: 750,
-//     status: "open",
-//     createdAt: "2 days ago",
-//     applicants: 3
-//   },
-//   {
-//     id: 102,
-//     title: "Write Documentation for NFT Platform",
-//     description: "Need comprehensive documentation for a new NFT minting and trading platform.",
-//     reward: 500,
-//     status: "in_progress",
-//     createdAt: "1 week ago",
-//     freelancer: "crypto_writer.eth"
-//   },
-//   {
-//     id: 103,
-//     title: "Create 3D Models for Metaverse",
-//     description: "Design 5 unique 3D avatar accessories for a metaverse project.",
-//     reward: 1200,
-//     status: "completed",
-//     createdAt: "3 weeks ago",
-//     freelancer: "3d_master.eth"
-//   }
-// ];
-
-// const approvedOrders = [
-//   {
-//     id: 201,
-//     title: "Smart Contract for Token Vesting",
-//     description: "Develop a token vesting contract with time-based unlocking and emergency pause functionality.",
-//     reward: 1800,
-//     status: "in_progress",
-//     client: "token_project.eth",
-//     startedAt: "5 days ago"
-//   },
-//   {
-//     id: 202,
-//     title: "Create Marketing Graphics for DeFi Launch",
-//     description: "Design a set of 10 social media graphics for our DeFi protocol launch.",
-//     reward: 650,
-//     status: "completed",
-//     client: "defi_dao.eth",
-//     completedAt: "2 weeks ago"
-//   }
-// ];
-
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("created");
   const { isConnected, walletAddress } = useWallet();
@@ -102,6 +34,34 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userMetadata, setUserMetadata] = useState<{
+    full_name: string;
+    avatar?: string;
+    forecaster_id?: string;
+    forecaster_nickname?: string;
+  } | null>(null);
+
+  // Fetch user metadata
+  useEffect(() => {
+    async function fetchUserMetadata() {
+      if (!walletAddress) return;
+
+      try {
+        const response = await fetch(`/api/users?address=${walletAddress}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch user metadata");
+        }
+        const data = await response.json();
+        setUserMetadata(data);
+      } catch (err) {
+        console.error("Error fetching user metadata:", err);
+      }
+    }
+
+    if (isConnected && walletAddress) {
+      fetchUserMetadata();
+    }
+  }, [isConnected, walletAddress]);
 
   // Fetch user tasks
   useEffect(() => {
@@ -334,13 +294,21 @@ export default function ProfilePage() {
             <Card className="sticky top-24">
               <div className="flex flex-col items-center text-center">
                 <div className="w-20 h-20 rounded-full bg-yellow-400 flex items-center justify-center text-2xl font-bold text-gray-900 mb-4">
-                  {walletAddress ? walletAddress.charAt(2).toUpperCase() : "?"}
+                  {userMetadata?.avatar ? (
+                    <img
+                      src={userMetadata.avatar}
+                      alt={userMetadata.full_name}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    walletAddress ? walletAddress.charAt(2).toUpperCase() : "?"
+                  )}
                 </div>
 
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-                  {walletAddress
+                  {userMetadata?.full_name || (walletAddress
                     ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
-                    : "Unknown User"}
+                    : "Unknown User")}
                 </h2>
 
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 break-all max-w-full overflow-hidden">
@@ -514,8 +482,8 @@ export default function ProfilePage() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.4, delay: 0.1 * index }}
                         >
-                          <Card 
-                            className="hover:border-yellow-300 cursor-pointer" 
+                          <Card
+                            className="hover:border-yellow-300 cursor-pointer"
                             onClick={() => openTaskDetails(task)}
                           >
                             <div className="flex justify-between items-start mb-4">
@@ -526,7 +494,7 @@ export default function ProfilePage() {
                                   </h3>
                                   {getStatusBadge(task)}
                                 </div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 break-words">
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 break-words line-clamp-3">
                                   {task.description}
                                 </p>
                               </div>
@@ -559,12 +527,19 @@ export default function ProfilePage() {
                               <Button
                                 variant={
                                   task.owner_approved && task.executor_approved
-                                    ? "ghost"
-                                    : task.executor_approved ? "primary" : "secondary"
+                                    ? "secondary"
+                                    : task.executor_approved
+                                      ? "primary"
+                                      : "ghost"
                                 }
                                 size="sm"
                                 onClick={() => {
-                                 if (task.executor === null || (task.owner_approved && task.executor_approved) || !task.executor_approved) { 
+                                  if (
+                                    task.executor === null ||
+                                    (task.owner_approved &&
+                                      task.executor_approved) ||
+                                    !task.executor_approved
+                                  ) {
                                     openTaskDetails(task);
                                   } else if (task.executor_approved) {
                                     handleApproveWork(task._id);
@@ -641,7 +616,7 @@ export default function ProfilePage() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.4, delay: 0.1 * index }}
                         >
-                          <Card 
+                          <Card
                             className="hover:border-yellow-300 cursor-pointer"
                             onClick={() => openTaskDetails(task)}
                           >
@@ -653,7 +628,7 @@ export default function ProfilePage() {
                                   </h3>
                                   {getStatusBadge(task)}
                                 </div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 break-words">
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 break-words line-clamp-3">
                                   {task.description}
                                 </p>
                               </div>
@@ -680,25 +655,31 @@ export default function ProfilePage() {
                               </div>
 
                               <Button
+                                size="sm"
                                 variant={
-                                  task.owner_approved && task.executor_approved
-                                    ? "secondary"
+                                  (task.owner_approved &&
+                                    task.executor_approved) ||
+                                  task.executor_approved
+                                    ? "ghost"
                                     : "primary"
                                 }
                                 onClick={() => {
-                                 if (task.owner_approved && task.executor_approved || task.executor_approved) {
+                                  if (
+                                    (task.owner_approved &&
+                                      task.executor_approved) ||
+                                    task.executor_approved
+                                  ) {
                                     openTaskDetails(task);
                                   } else {
                                     handleSubmitWork(task._id);
                                   }
                                 }}
-                               
                               >
-                                {task.owner_approved && task.executor_approved
+                                {(task.owner_approved &&
+                                  task.executor_approved) ||
+                                task.executor_approved
                                   ? "View Details"
-                                  : task.executor_approved
-                                    ? "Waiting for Approval"
-                                    : "Submit Work"}
+                                  : "Submit Work"}
                               </Button>
                             </div>
                           </Card>

@@ -94,7 +94,7 @@ class WebSocketService {
       wallet: this.wallet.address,
       participant: this.wallet.address,
       app_name: "needify",
-      expire: String(1), // 1 hour expiration
+      expire: String(Math.floor(Date.now() / 1000) + 3600), // 1 hour expiration
       scope: "console",
       application: this.wallet.address,
       allowances: [],

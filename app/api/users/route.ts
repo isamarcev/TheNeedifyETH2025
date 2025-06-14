@@ -1,6 +1,40 @@
 import { DBService } from "@/app/db/dbService";
 import { NextResponse } from "next/server";
 import { UserMetadata } from "@/app/db/types";
+import { fetchUserMetadataFromForecaster } from "@/app/db/forecasterMock";
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const address = searchParams.get('address');
+    
+    if (!address) {
+      return NextResponse.json(
+        { error: "Address is required" },
+        { status: 400 }
+      );
+    }
+
+    // Get user from database
+    const user = await DBService.getUser(address);
+    
+    if (user) {
+      return NextResponse.json(user);
+    }
+
+    // If user doesn't exist, fetch metadata from Farcaster and create user
+    const metadata = await fetchUserMetadataFromForecaster(address);
+    const newUser = await DBService.getOrCreateUser(address, metadata);
+    
+    return NextResponse.json(newUser);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch user" },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(request: Request) {
   try {
