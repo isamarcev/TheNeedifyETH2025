@@ -24,6 +24,39 @@ import { Icon } from "./components/DemoComponents";
 import { Home } from "./components/DemoComponents";
 import { Features } from "./components/DemoComponents";
 
+function FarcasterContext({ context }: { context: any }) {
+  if (!context) return null;
+  
+  console.log('Farcaster Context:', context);
+  
+  const handleOpenProfile = () => {
+    console.log('Client:', context?.client);
+    console.log('User:', context?.user);
+    if (context?.user?.username) {
+      window.open(`https://farcaster.xyz/${context.user.username}`, '_blank');
+    }
+  };
+
+  return (
+    <div className="mt-4 p-4 bg-[var(--app-card-bg)] rounded-lg border border-[var(--app-card-border)]">
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-sm font-medium">Farcaster Context</h3>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleOpenProfile}
+          className="text-[var(--app-accent)]"
+        >
+          View Profile
+        </Button>
+      </div>
+      <pre className="text-xs overflow-auto max-h-40 text-[var(--app-foreground-muted)]">
+        {JSON.stringify(context, null, 2)}
+      </pre>
+    </div>
+  );
+}
+
 export default function App() {
   const { setFrameReady, isFrameReady, context } = useMiniKit();
   const [frameAdded, setFrameAdded] = useState(false);
@@ -99,6 +132,8 @@ export default function App() {
           {activeTab === "home" && <Home setActiveTab={setActiveTab} />}
           {activeTab === "features" && <Features setActiveTab={setActiveTab} />}
         </main>
+
+        <FarcasterContext context={context} />
 
         <footer className="mt-2 pt-4 flex justify-center">
           <Button
