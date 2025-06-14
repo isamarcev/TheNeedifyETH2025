@@ -29,7 +29,7 @@ import { useAccount } from "wagmi";
 const USDC_CONTRACT_ADDRESS = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
 
 export default function CreateOrderPage() {
-  const { isConnected } = useWallet();
+  const { isConnected, walletAddress } = useWallet();
   const { address } = useAccount();
   const router = useRouter();
   const sendNotification = useNotification();
@@ -120,7 +120,33 @@ export default function CreateOrderPage() {
     if (!validate()) return;
     
     setIsSubmitting(true);
-    setErrors(prev => ({ ...prev, transaction: undefined }));
+    
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          owner: walletAddress,
+          title: formData.title,
+          description: formData.description,
+          asset: 'USDC',
+          amount: Number(formData.reward),
+          category: 'Development', // You might want to add a category field to the form
+          deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create order');
+      }
+
+      router.push('/orders');
+    } catch (error) {
+      console.error('Error creating order:', error);
+      setIsSubmitting(false);
+    }
   };
 
   if (!isConnected) {
