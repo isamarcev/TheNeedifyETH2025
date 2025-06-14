@@ -9,7 +9,8 @@
     "lint": "next lint",
     "checkKeys": "npx tsx ./scripts/checkKeys.ts",
     "checkConnection": "npx tsx ./scripts/checkConnection.ts",
-    "example": "node ./scripts/example.js"
+    "example": "node ./scripts/example.js",
+    "yellow-wrapper": "npx tsx ./lib/yellow-wrapper.ts"
   },
   "dependencies": {
     "@coinbase/onchainkit": "latest",
