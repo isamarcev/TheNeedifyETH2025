@@ -23,9 +23,44 @@ import { Button } from "./components/DemoComponents";
 import { Icon } from "./components/DemoComponents";
 import { Home } from "./components/DemoComponents";
 import { Features } from "./components/DemoComponents";
+import { useAccount } from "wagmi";
+
+function FarcasterContext({ context }: { context: any }) {
+  if (!context) return null;
+  
+  // console.log('Farcaster Context:', context);
+  
+  const handleOpenProfile = () => {
+    console.log('Client:', context?.client);
+    console.log('User:', context?.user);
+    if (context?.user?.username) {
+      window.open(`https://farcaster.xyz/${context.user.username}`, '_blank');
+    }
+  };
+
+  return (
+    <div className="mt-4 p-4 bg-[var(--app-card-bg)] rounded-lg border border-[var(--app-card-border)]">
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-sm font-medium">Farcaster Context</h3>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleOpenProfile}
+          className="text-[var(--app-accent)]"
+        >
+          View Profile
+        </Button>
+      </div>
+      <pre className="text-xs overflow-auto max-h-40 text-[var(--app-foreground-muted)]">
+        {JSON.stringify(context, null, 2)}
+      </pre>
+    </div>
+  );
+}
 
 export default function App() {
   const { setFrameReady, isFrameReady, context } = useMiniKit();
+  const { address } = useAccount();
   const [frameAdded, setFrameAdded] = useState(false);
   const [activeTab, setActiveTab] = useState("home");
 
@@ -37,6 +72,44 @@ export default function App() {
       setFrameReady();
     }
   }, [setFrameReady, isFrameReady]);
+
+  // Create user when wallet is connected
+  useEffect(() => {
+    const createUser = async () => {
+      if (address ) {
+        try {
+          // console.log('Farcaster client context:', context.client);
+          // console.log('Farcaster user context:', context.user);
+          
+          // We'll update this once we see the actual structure
+          const metadata = {
+            full_name: context?.user?.displayName || '',
+            avatar: context?.user?.pfpUrl || '',
+            forecaster_id: context?.user?.fid?.toString() || '',
+            forecaster_nickname: context?.user?.username || '',
+          };
+
+          const response = await fetch('/api/users', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ address, metadata }),
+          });
+          
+          if (!response.ok) {
+            throw new Error('Failed to create user');
+          }
+          
+          console.log('User created/updated in database');
+        } catch (error) {
+          console.error('Error creating user:', error);
+        }
+      }
+    };
+
+    createUser();
+  }, [address, context?.client]);
 
   const handleAddFrame = useCallback(async () => {
     const frameAdded = await addFrame();
@@ -100,6 +173,8 @@ export default function App() {
           {activeTab === "features" && <Features setActiveTab={setActiveTab} />}
         </main>
 
+        <FarcasterContext context={context} />
+
         <footer className="mt-2 pt-4 flex justify-center">
           <Button
             variant="ghost"
@@ -111,6 +186,6 @@ export default function App() {
           </Button>
         </footer>
       </div>
-    </div>
+    </PageContainer>
   );
 }

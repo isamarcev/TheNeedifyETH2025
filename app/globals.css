@@ -5,12 +5,38 @@
 :root {
   --background: #ffffff;
   --foreground: #111111;
+  --primary: #fbbf24; /* Layer 3 yellow */
+  --primary-hover: #f59e0b;
+  --primary-foreground: #111111;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #111111;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --card: #ffffff;
+  --card-foreground: #111111;
+  --border: #e5e7eb;
+  --input: #ffffff;
+  --accent: #fbbf24;
+  --accent-foreground: #111111;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #111111;
     --foreground: #ffffff;
+    --primary: #fbbf24; /* Layer 3 yellow */
+    --primary-hover: #f59e0b;
+    --primary-foreground: #111111;
+    --secondary: #1f2937;
+    --secondary-foreground: #ffffff;
+    --muted: #1f2937;
+    --muted-foreground: #9ca3af;
+    --card: #1e1e1e;
+    --card-foreground: #ffffff;
+    --border: #374151;
+    --input: #1e1e1e;
+    --accent: #fbbf24;
+    --accent-foreground: #111111;
   }
 }
 
@@ -21,5 +47,108 @@ body {
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
-  font-size: 80%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Gradient text utility */
+.gradient-text {
+  @apply bg-gradient-to-r from-yellow-400 to-yellow-500 text-transparent bg-clip-text;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Animation utilities */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Bottom navigation and mobile support */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+@supports (padding: max(0px)) {
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem));
+  }
+}
+
+/* Bottom navigation spacing */
+body {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+/* Adjust bottom padding for main content to account for navbar height */
+html, body {
+  padding: 0;
+  margin: 0;
+  scroll-padding-bottom: 5rem;
+}
+
+/* Add consistent padding for mobile screens */
+.page-content {
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .page-content {
+    padding: 1.5rem;
+  }
+}
+
+/* Ensure content doesn't get hidden behind the bottom nav */
+main {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 16px));
 }
