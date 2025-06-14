@@ -130,8 +130,7 @@ export default function OrdersPage() {
     setFilteredOrders(result);
   }, [selectedCategory, searchQuery]);
 
-  const handleTakeOrder = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleTakeOrder = () => {
     if (!isConnected) {
       setShowWalletConnect(true);
     } else {
