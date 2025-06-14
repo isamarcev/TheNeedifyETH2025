@@ -1,0 +1,42 @@
+import { DBService } from "@/app/db/dbService";
+import { NextResponse } from "next/server";
+import { UserMetadata } from "@/app/db/types";
+
+export async function POST(request: Request) {
+  try {
+    const { address, metadata } = await request.json();
+    
+    if (!address) {
+      return NextResponse.json(
+        { error: "Address is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!metadata || !isValidMetadata(metadata)) {
+      return NextResponse.json(
+        { error: "Valid metadata is required" },
+        { status: 400 }
+      );
+    }
+
+    const user = await DBService.getOrCreateUser(address, metadata);
+    return NextResponse.json(user);
+  } catch (error) {
+    console.error("Error creating user:", error);
+    return NextResponse.json(
+      { error: "Failed to create user" },
+      { status: 500 }
+    );
+  }
+}
+
+function isValidMetadata(metadata: any): metadata is UserMetadata {
+  return (
+    typeof metadata === 'object' &&
+    typeof metadata.full_name === 'string' &&
+    typeof metadata.avatar === 'string' &&
+    typeof metadata.forecaster_id === 'string' &&
+    typeof metadata.forecaster_nickname === 'string'
+  );
+}

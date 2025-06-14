@@ -1,112 +1,61 @@
-# MiniKit Template
+## 🚀 Needify — Decentralized Freelance Task Matching
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-onchain --mini`](), configured with:
+Needify is a peer-to-peer freelance task board integrated with Farcaster and powered by the Yellow ERC-7824 escrow protocol. It allows wallet-based users to create, accept, and complete bounties in a trustless and social environment.
 
-- [MiniKit](https://docs.base.org/builderkits/minikit/overview)
-- [OnchainKit](https://www.base.org/builders/onchainkit)
-- [Tailwind CSS](https://tailwindcss.com)
-- [Next.js](https://nextjs.org/docs)
+🛠 Tech Stack
+Layer	Tools
+Frontend	Next.js, Tailwind CSS
+Database	MongoDB
+Protocol	Yellow ERC-7824
+Auth	Wallet-based (MetaMask)
+Messaging	channel_id (mocked)
 
-## Getting Started
+## 💡 Key Features
+Fully decentralized — no centralized backend
 
-1. Install dependencies:
-```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
-# or
-bun install
-```
+Auth via wallet address
 
-2. Verify environment variables, these will be set up by the `npx create-onchain --mini` command:
+Post and accept freelance bounties
 
-You can regenerate the FARCASTER Account Association environment variables by running `npx create-onchain --manifest` in your project directory.
+Escrow logic using ERC-7824
 
-The environment variables enable the following features:
+Social profile enrichment using Farcaster
 
-- Frame metadata - Sets up the Frame Embed that will be shown when you cast your frame
-- Account association - Allows users to add your frame to their account, enables notifications
-- Redis API keys - Enable Webhooks and background notifications for your application by storing users notification details
+## 🎯 Problem
+Web3 lacks a smooth, trustless way to collaborate on microtasks between builders, without relying on centralized intermediaries or reputation-less addresses.
 
-```bash
-# Shared/OnchainKit variables
-NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME=
-NEXT_PUBLIC_URL=
-NEXT_PUBLIC_ICON_URL=
-NEXT_PUBLIC_ONCHAINKIT_API_KEY=
+## ✅ Solution
+Needify offers:
 
-# Frame metadata
-FARCASTER_HEADER=
-FARCASTER_PAYLOAD=
-FARCASTER_SIGNATURE=
-NEXT_PUBLIC_APP_ICON=
-NEXT_PUBLIC_APP_SUBTITLE=
-NEXT_PUBLIC_APP_DESCRIPTION=
-NEXT_PUBLIC_APP_SPLASH_IMAGE=
-NEXT_PUBLIC_SPLASH_BACKGROUND_COLOR=
-NEXT_PUBLIC_APP_PRIMARY_CATEGORY=
-NEXT_PUBLIC_APP_HERO_IMAGE=
-NEXT_PUBLIC_APP_TAGLINE=
-NEXT_PUBLIC_APP_OG_TITLE=
-NEXT_PUBLIC_APP_OG_DESCRIPTION=
-NEXT_PUBLIC_APP_OG_IMAGE=
+Trustless onboarding via wallet and social profile (Farcaster)
 
-# Redis config
-REDIS_URL=
-REDIS_TOKEN=
-```
+Peer-to-peer collaboration without centralized escrow agents
 
-3. Start the development server:
-```bash
-npm run dev
-```
+Escrow logic via Yellow ERC-7824 standard
 
-## Template Features
+Simple onboarding with no registration — just connect your wallet
 
-### Frame Configuration
-- `.well-known/farcaster.json` endpoint configured for Frame metadata and account association
-- Frame metadata automatically added to page headers in `layout.tsx`
+## 👤 Target Users
+Builders/founders looking to delegate microtasks securely
 
-### Background Notifications
-- Redis-backed notification system using Upstash
-- Ready-to-use notification endpoints in `api/notify` and `api/webhook`
-- Notification client utilities in `lib/notification-client.ts`
+Freelancers or contributors who want reputation-backed opportunities
 
-### Theming
-- Custom theme defined in `theme.css` with OnchainKit variables
-- Pixel font integration with Pixelify Sans
-- Dark/light mode support through OnchainKit
+DAOs or open communities coordinating on small jobs
 
-### MiniKit Provider
-The app is wrapped with `MiniKitProvider` in `providers.tsx`, configured with:
-- OnchainKit integration
-- Access to Frames context
-- Sets up Wagmi Connectors
-- Sets up Frame SDK listeners
-- Applies Safe Area Insets
+## 🔍 How It Works
+User connects via MetaMask
 
-## Customization
+Posts a task: title, description, amount, asset
 
-To get started building your own frame, follow these steps:
+Another user accepts it (start_task(channel_id))
 
-1. Remove the DemoComponents:
-   - Delete `components/DemoComponents.tsx`
-   - Remove demo-related imports from `page.tsx`
+Both parties confirm → funds are released via final_task(channel_id)
 
-2. Start building your Frame:
-   - Modify `page.tsx` to create your Frame UI
-   - Update theme variables in `theme.css`
-   - Adjust MiniKit configuration in `providers.tsx`
+Task and channel info stored in MongoDB
 
-3. Add your frame to your account:
-   - Cast your frame to see it in action
-   - Share your frame with others to start building your community
+## 🧱 Next Steps
+Add real Farcaster and ERC-7824 integrations
 
-## Learn More
+Add reputation system
 
-- [MiniKit Documentation](https://docs.base.org/builderkits/minikit/overview)
-- [OnchainKit Documentation](https://docs.base.org/builderkits/onchainkit/getting-started)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+UI improvements and live deployment
