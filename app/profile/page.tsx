@@ -466,7 +466,7 @@ export default function ProfilePage() {
                             <div className="flex justify-between items-start mb-4">
                               <div className="flex-1 min-w-0 mr-4">
                                 <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white break-words">
+                                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white break-words max-w-full truncate">
                                     {task.title}
                                   </h3>
                                   {getStatusBadge(task)}
@@ -501,7 +501,7 @@ export default function ProfilePage() {
                               </div>
                               
                               <Button
-                                variant={task.owner_approved && task.executor_approved ? 'ghost' : 'outline'}
+                                variant={task.owner_approved && task.executor_approved ? 'ghost' : 'secondary'}
                                 size="sm"
                                 onClick={() => {
                                   if (task.executor === null) {
@@ -575,7 +575,7 @@ export default function ProfilePage() {
                             <div className="flex justify-between items-start mb-4">
                               <div className="flex-1 min-w-0 mr-4">
                                 <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white break-words">
+                                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white break-words max-w-full truncate">
                                     {task.title}
                                   </h3>
                                   {getStatusBadge(task)}
@@ -605,7 +605,7 @@ export default function ProfilePage() {
                               </div>
                               
                               <Button
-                                variant={task.owner_approved && task.executor_approved ? 'outline' : 'primary'}
+                                variant={task.owner_approved && task.executor_approved ? 'secondary' : 'primary'}
                                 size="sm"
                                 onClick={() => {
                                   if (task.owner_approved && task.executor_approved) {
