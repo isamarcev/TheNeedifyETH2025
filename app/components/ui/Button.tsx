@@ -75,14 +75,17 @@ export const Button = ({
 
   if (href) {
     return (
-      <Link href={href} passHref>
-        <motion.a
-          className={buttonClasses}
+      <Link 
+        href={href} 
+        className={buttonClasses}
+        onClick={onClick}
+      >
+        <motion.span
+          className="flex w-full h-full items-center justify-center"
           {...buttonMotion}
-          onClick={onClick}
         >
           {buttonContent}
-        </motion.a>
+        </motion.span>
       </Link>
     );
   }

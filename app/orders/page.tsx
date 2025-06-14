@@ -105,7 +105,7 @@ export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredOrders, setFilteredOrders] = useState(allOrders);
   const [showWalletConnect, setShowWalletConnect] = useState(false);
-  const { isConnected, connectWallet } = useWallet();
+  const { isConnected, WalletButton } = useWallet();
 
   // Filter orders
   useEffect(() => {
@@ -136,6 +136,7 @@ export default function OrdersPage() {
       setShowWalletConnect(true);
     } else {
       // Logic for connected user taking an order
+      // Add real implementation here
       alert("Order taken successfully!");
     }
   };
