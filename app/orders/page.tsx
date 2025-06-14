@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PageContainer } from './components/layout/PageContainer';
-import { Card } from './components/ui/Card';
-import { Button } from './components/ui/Button';
-import { ConnectWalletScreen } from './components/ui/ConnectWalletScreen';
-import { useWallet } from './context/WalletContext';
+import { PageContainer } from '../components/layout/PageContainer';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { ConnectWalletScreen } from '../components/ui/ConnectWalletScreen';
+import { useWallet } from '../context/WalletContext';
 import Link from 'next/link';
-
 
 const allOrders = [
   {
@@ -108,7 +107,7 @@ export default function OrdersPage() {
   const [showWalletConnect, setShowWalletConnect] = useState(false);
   const { isConnected, connectWallet } = useWallet();
 
-  // Filter orders based on category and search query не юзаєм
+  // Filter orders
   useEffect(() => {
     let result = allOrders;
     
@@ -119,7 +118,7 @@ export default function OrdersPage() {
       );
     }
     
-    // Filter by search query
+    // Filter by search query не юзаєм
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(order => 
@@ -137,7 +136,6 @@ export default function OrdersPage() {
       setShowWalletConnect(true);
     } else {
       // Logic for connected user taking an order
-      // Add real implementation here
       alert("Order taken successfully!");
     }
   };
