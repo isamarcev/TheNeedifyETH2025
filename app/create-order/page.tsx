@@ -125,7 +125,7 @@ export default function CreateOrderPage() {
     console.error('Transaction failed:', error);
     setErrors(prev => ({
       ...prev,
-      transaction: error.message || 'Failed to create order'
+      transaction: error.message.slice(0, 30) + '...'
     }));
     setIsSubmitting(false);
   };
@@ -207,17 +207,17 @@ export default function CreateOrderPage() {
 
     } catch (error) {
       console.error("Error creating order:", error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create order';
+      const message = error instanceof Error ? error.message.slice(0, 30) + '...' : 'Failed to create order';
       setErrors(prev => ({
         ...prev,
-        transaction: errorMessage
+        transaction: message
       }));
       setIsSubmitting(false);
 
       // Send error notification
       await sendNotification({
         title: "Error Creating Order",
-        body: errorMessage
+        body: message
       });
     }
   };
@@ -484,7 +484,7 @@ export default function CreateOrderPage() {
                 Create Order
               </Button>
             </motion.div>
-            {/* {errors.transaction && (
+            {errors.transaction && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -495,7 +495,7 @@ export default function CreateOrderPage() {
                   {errors.transaction}
                 </p>
               </motion.div>
-            )} */}
+            )}
           </form>
         </Card>
 

@@ -50,9 +50,9 @@ export async function transferUSDC(
 
     console.log("Amount in USDC", balance);
 
-    // if (balance < amountInUSDC) {
-    //   throw new Error('Insufficient USDC balance');
-    // }
+    if (balance < amountInUSDC) {
+      throw new Error('Insufficient USDC balance');
+    }
 
     // Prepare the transaction
     const { request } = await publicClient.simulateContract({
