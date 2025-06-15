@@ -169,22 +169,23 @@ import {
     )
   ).app_session_id;
 
-  console.log(
-    await closeApplicationSession(
-      appSessionId,
-      {
-        eoaWallet: user1,
-        sessionWallet: session,
-        asset: "usdc",
-        amount: 0,
-      },
-      {
-        eoaWallet: user2,
-        sessionWallet: session2,
-        asset: "usdc",
-        amount: 0,
-      },
-      authResponse2.jwtToken
-    )
-  );
+  // // FIXME
+  // console.log(
+  //   await closeApplicationSession(
+  //     appSessionId,
+  //     {
+  //       eoaWallet: user1,
+  //       sessionWallet: session,
+  //       asset: "usdc",
+  //       amount: 0,
+  //     },
+  //     {
+  //       eoaWallet: user2,
+  //       sessionWallet: session2,
+  //       asset: "usdc",
+  //       amount: 0,
+  //     },
+  //     authResponse2.jwtToken
+  //   )
+  // );
 })();

@@ -135,6 +135,14 @@ export async function authUser(
   });
 }
 
+/**
+ * 
+ * @param participantA - has 100 vote weight
+ * @param participantB - has 0 vote weight
+ * @param jwt -- last valid JWT
+ * @param nodeAddress -- by deault, DEFAULT
+ * @returns 
+ */
 export async function createApplicationSession(
   participantA: Participant,
   participantB: Participant,
@@ -174,6 +182,7 @@ export async function createApplicationSession(
       },
     ];
 
+    // Next lines is workaround, because we need multiple signatures
     const requestId = generateRequestId();
     const timestamp = getCurrentTimestamp();
 
@@ -245,6 +254,7 @@ export async function createApplicationSession(
   });
 }
 
+// FIXME: signatures are incorrect
 export async function closeApplicationSession(
   appSessionId: string,
   participantA: Participant,
