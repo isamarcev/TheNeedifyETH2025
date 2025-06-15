@@ -47,16 +47,8 @@ export const BottomNav = () => {
   
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-2 shadow-lg pb-safe w-full max-w-full">
-      {/* Wallet connection status */}
-      <div className="absolute -top-10 right-4 bg-white dark:bg-gray-800 shadow-md rounded-full py-1 px-3 border border-gray-200 dark:border-gray-700 text-xs flex items-center">
-        <span className={`mr-2 ${isConnected ? 'text-green-500' : 'text-gray-500'}`}>
-          {isConnected ? (user?.forecaster_nickname || 'Connected') : 'Disconnected'}
-        </span>
-        <div className="scale-75 origin-right">
-          <WalletButton />
-        </div>
-      </div>
-
+      {/* Remove the wallet connection status and button */}
+      
       <div className="flex justify-around items-center h-16 max-w-md mx-auto">
         {navItems.map((item) => {
           // Determine if this nav item should be active
