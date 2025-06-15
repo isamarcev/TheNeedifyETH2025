@@ -28,7 +28,7 @@ interface Task {
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("created");
-  const { isConnected, walletAddress, user } = useWallet();
+  const { isConnected, walletAddress, user, disconnect } = useWallet();
   const [userTasks, setUserTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -379,8 +379,14 @@ export default function ProfilePage() {
                   </p>
                 )}
 
-                <Button variant="primary" size="sm" fullWidth>
-                  Edit Profile
+                {/* Replace Edit Profile button with Disconnect button */}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  fullWidth
+                  onClick={() => disconnect()}
+                >
+                  Disconnect Wallet
                 </Button>
               </div>
 
