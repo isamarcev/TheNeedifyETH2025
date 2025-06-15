@@ -47,8 +47,8 @@ export default function NotFound() {
             key={i}
             className="absolute w-4 h-4 rounded-full bg-purple-400/50"
             initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
+              x: typeof window !== 'undefined' ? Math.random() * window.innerWidth : 0,
+              y: typeof window !== 'undefined' ? Math.random() * window.innerHeight : 0,
               scale: Math.random() * 0.5 + 0.5,
             }}
             animate={{
