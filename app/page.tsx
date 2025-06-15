@@ -389,7 +389,7 @@ export default function OrdersPage() {
                     {task.title}
                   </h3>
 
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 flex-grow">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 flex-grow break-all">
                     {task.description}
                   </p>
 

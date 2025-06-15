@@ -137,6 +137,18 @@ html, body {
   scroll-padding-bottom: 5rem;
 }
 
+/* Fix for mobile viewport issues */
+html, body {
+  overflow-x: hidden;
+  position: relative;
+  width: 100%;
+}
+
+/* Ensure content doesn't get hidden behind the bottom nav */
+main {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 16px));
+}
+
 /* Add consistent padding for mobile screens */
 .page-content {
   padding: 1rem;
@@ -146,9 +158,4 @@ html, body {
   .page-content {
     padding: 1.5rem;
   }
-}
-
-/* Ensure content doesn't get hidden behind the bottom nav */
-main {
-  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 16px));
 }

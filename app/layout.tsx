@@ -10,16 +10,14 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
-export async function generateMetadata(): Promise<Metadata> {
-  return {
-    title: "Needify | Web3 Freelance Platform",
-    description:
-      "The talent marketplace for Web3 builders. Connect, collaborate, and get paid in USDC on Layer 3.",
-    icons: {
-      icon: "/favicon.ico",
-    },
-  };
-}
+export const metadata: Metadata = {
+  title: "TheNeedify",
+  description: "TheNeedify - Freelance marketplace on L3",
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/apple-icon.png",
+  },
+};
 
 export default function RootLayout({
   children,
