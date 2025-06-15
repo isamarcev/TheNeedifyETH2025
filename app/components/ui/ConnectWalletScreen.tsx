@@ -7,7 +7,7 @@ import { useWallet } from '../../context/WalletContext';
 export const ConnectWalletScreen = () => {
   const [animate, setAnimate] = useState(false);
   const [wasConnected, setWasConnected] = useState(false);
-  const { WalletButton } = useWallet();
+  const { WalletButton, user } = useWallet();
   
   useEffect(() => {
     setAnimate(true);
@@ -77,6 +77,9 @@ export const ConnectWalletScreen = () => {
           className="mt-12 text-sm text-gray-500 dark:text-gray-400"
         >
           <p>Supports Farcaster, Coinbase Wallet, and MetaMask</p>
+          {user && user.forecaster_nickname && (
+            <p className="mt-2 text-amber-500">Welcome back, {user.forecaster_nickname}!</p>
+          )}
         </motion.div>
       </motion.div>
     </div>

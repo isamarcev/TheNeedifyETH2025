@@ -30,6 +30,7 @@ export const Card = ({
         border border-gray-200 dark:border-gray-800
         rounded-2xl
         transition-all
+        wrap-anywhere
         ${paddingClasses[padding]}
         ${hoverEffect ? 'hover:shadow-lg hover:-translate-y-1' : ''}
         ${onClick ? 'cursor-pointer' : ''}

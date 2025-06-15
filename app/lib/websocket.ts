@@ -29,7 +29,7 @@ class WebSocketService {
   });
 
   private constructor() {
-    this.initializeWebSocket();
+    // this.initializeWebSocket();
   }
 
   public static getInstance(): WebSocketService {

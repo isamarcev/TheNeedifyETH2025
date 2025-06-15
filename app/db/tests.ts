@@ -4,8 +4,18 @@ async function runTests() {
   console.log("🔌 Connecting to MongoDB...");
 
   // 🔹 1. Test getOrCreateUser
-  const user1 = await DBService.getOrCreateUser("0x1111111111111111111111111111111111111111");
-  const user2 = await DBService.getOrCreateUser("0x2222222222222222222222222222222222222222");
+  const user1 = await DBService.getOrCreateUser("0x1111111111111111111111111111111111111111", {
+    full_name: "string",
+    avatar: "string",
+    forecaster_id: "string",
+    forecaster_nickname: "string",
+  });
+  const user2 = await DBService.getOrCreateUser("0x2222222222222222222222222222222222222222", {
+    full_name: "string",
+    avatar: "string",
+    forecaster_id: "string",
+    forecaster_nickname: "string",
+  });
 
   console.log("✅ Created users:");
   console.log(user1);
@@ -19,6 +29,7 @@ async function runTests() {
     asset: "USDC",
     amount: 50,
     deadline: null,
+    category: "development"
   });
 
   console.log("✅ Task created:");
