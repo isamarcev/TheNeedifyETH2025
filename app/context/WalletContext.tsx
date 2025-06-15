@@ -1,41 +1,38 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { injected } from 'wagmi/connectors';
-import { Button } from '../components/ui/Button';
+import { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
+import { useAccount, useConnect } from "wagmi";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
-
-// User interface matching our backend User type
-interface User {
-  address: string;
-  full_name: string;
-  avatar: string;
-  forecaster_id: string;
-  forecaster_nickname: string;
-  created_at: string;
-}
+import {
+  ConnectWallet,
+  Wallet,
+  WalletDropdown,
+  WalletDropdownDisconnect,
+} from "@coinbase/onchainkit/wallet";
+import {
+  Name,
+  Identity,
+  Address,
+  Avatar,
+  EthBalance,
+} from "@coinbase/onchainkit/identity";
 
 type WalletContextType = {
   isConnected: boolean;
   walletAddress: string | null;
-  connect: () => void;
-  disconnect: () => void;
-  isConnecting: boolean;
+  connectWallet: () => void;
+  disconnectWallet: () => void;
   WalletButton: React.FC;
-  user: User | null;
 };
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export const WalletProvider = ({ children }: { children: ReactNode }) => {
-  const { address, isConnected } = useAccount();
-  const { connect: wagmiConnect, isPending } = useConnect();
-  const { disconnect: wagmiDisconnect } = useDisconnect();
+  const { address, isConnected: wagmiIsConnected } = useAccount();
+  const { connect, connectors } = useConnect();
   const { setFrameReady, isFrameReady } = useMiniKit();
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoadingUser, setIsLoadingUser] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const autoConnectAttempted = useRef(false);
   
   // Initialize MiniKit
   useEffect(() => {
@@ -44,96 +41,102 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [setFrameReady, isFrameReady]);
 
-  // Define connect and disconnect functions
-  const connect = () => {
-    wagmiConnect({ connector: injected() });
-  };
-
-  const disconnect = () => {
-    wagmiDisconnect();
-    localStorage.removeItem('needify_user');
-    localStorage.removeItem('walletConnected');
-    localStorage.removeItem('walletAddress');
-  };
-
-  // Handle user data when connection state changes
+  // Auto reconnect logic
   useEffect(() => {
-    if (isConnected && address) {
+    const attemptAutoConnect = async () => {
+      if (autoConnectAttempted.current || wagmiIsConnected) return;
+      
+      // Check if we should auto-reconnect
+      if (typeof window !== 'undefined') {
+        const storedConnection = localStorage.getItem('walletConnected');
+        
+        if (storedConnection === 'true' && !wagmiIsConnected) {
+          console.log('Attempting auto-reconnect...');
+          
+          try {
+            // Wait for connectors to be ready
+            await new Promise(resolve => setTimeout(resolve, 20));
+            
+            // Log all available connectors for debugging
+            console.log('Available connectors:', connectors);
+            
+            // Try all connectors
+            for (const connector of connectors) {
+              try {
+                console.log(`Trying to connect with ${connector.name}`);
+                await connect({ connector });
+                console.log(`Successfully connected with ${connector.name}`);
+                break;
+              } catch (err) {
+                console.log(`Failed to connect with ${connector.name}:`, err);
+              }
+            }
+          } catch (error) {
+            console.error('Auto-reconnect failed:', error);
+          }
+        }
+        
+        autoConnectAttempted.current = true;
+      }
+    };
+    
+    if (typeof window !== 'undefined') {
+      // Give page time to fully load
+      const timer = setTimeout(attemptAutoConnect, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [wagmiIsConnected, connect, connectors, isFrameReady]);
+
+  // Update connection state when address changes
+  useEffect(() => {
+    setIsConnected(wagmiIsConnected);
+    
+    if (wagmiIsConnected && address) {
       // Store connection info in localStorage for persistence
       if (typeof window !== 'undefined') {
         localStorage.setItem('walletConnected', 'true');
         localStorage.setItem('walletAddress', address);
       }
-      
-      setWalletAddress(address);
-      fetchUser(address);
-    } else {
-      setWalletAddress(null);
-      setUser(null);
     }
-  }, [isConnected, address]);
+  }, [wagmiIsConnected, address]);
 
-  // Load stored user data if available
-  useEffect(() => {
-    if (isConnected && !user) {
-      const storedUser = localStorage.getItem('needify_user');
-      if (storedUser) {
-        try {
-          setUser(JSON.parse(storedUser));
-        } catch (e) {
-          console.error('Error parsing stored user data:', e);
-        }
-      }
-    }
-  }, [isConnected, user]);
+  const connectWallet = () => {
+    // The actual connection is handled by the Wallet component
+    console.log('Opening wallet connection dialog');
+  };
 
-  const fetchUser = async (address: string) => {
-    try {
-      setIsLoadingUser(true);
-      const response = await fetch(`/api/users?address=${address}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch user');
-      }
-      
-      const userData = await response.json();
-      setUser(userData);
-      
-      // Store user in localStorage for persistence
-      localStorage.setItem('needify_user', JSON.stringify(userData));
-    } catch (error) {
-      console.error('Error fetching user:', error);
-    } finally {
-      setIsLoadingUser(false);
-    }
+  const disconnectWallet = () => {
+    // Disconnect will be handled by WalletDropdownDisconnect
+    console.log('Please use the wallet dropdown to disconnect');
   };
 
   // Custom wallet button component
   const WalletButton = () => {
-    if (isConnected) {
-      return (
-        <Button variant="outline" size="sm" onClick={disconnect}>
-          {isLoadingUser ? 'Loading...' : user?.forecaster_nickname || walletAddress?.slice(0, 6) + '...' + walletAddress?.slice(-4)}
-        </Button>
-      );
-    }
-
     return (
-      <Button variant="primary" size="sm" onClick={connect} loading={isPending}>
-        {isPending ? 'Connecting...' : 'Connect Wallet'}
-      </Button>
+      <Wallet className="z-10">
+        <ConnectWallet>
+          <Name className="text-inherit" />
+        </ConnectWallet>
+        <WalletDropdown>
+          <Identity className="px-4 pt-3 pb-2" hasCopyAddressOnClick>
+            <Avatar />
+            <Name />
+            <Address />
+            <EthBalance />
+          </Identity>
+          <WalletDropdownDisconnect />
+        </WalletDropdown>
+      </Wallet>
     );
   };
 
   return (
     <WalletContext.Provider value={{ 
       isConnected, 
-      walletAddress, 
-      connect, 
-      disconnect, 
-      isConnecting: isPending,
-      WalletButton,
-      user
+      walletAddress: address || null, 
+      connectWallet, 
+      disconnectWallet,
+      WalletButton
     }}>
       {children}
     </WalletContext.Provider>
@@ -147,5 +150,4 @@ export const useWallet = () => {
   }
   return context;
 };
-     
-
+ 
