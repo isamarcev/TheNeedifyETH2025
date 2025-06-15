@@ -8,7 +8,7 @@ import { useState } from 'react';
 
 export const BottomNav = () => {
   const pathname = usePathname();
-  const { isConnected, WalletButton, user } = useWallet();
+  const { isConnected, WalletButton } = useWallet();
   const [activeItem, setActiveItem] = useState(pathname);
   
   const navItems = [
