@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { PageContainer } from "../components/layout/PageContainer";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
@@ -28,18 +28,12 @@ interface Task {
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("created");
-  const { isConnected, walletAddress, user, disconnect } = useWallet();
+  const { isConnected, walletAddress } = useWallet();
   const [userTasks, setUserTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showSubmitSuccessPopup, setShowSubmitSuccessPopup] = useState(false);
-  const [submittedTaskTitle, setSubmittedTaskTitle] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState<string | null>(null);
-  const [showApproveSuccessPopup, setShowApproveSuccessPopup] = useState(false);
-  const [approvedTaskTitle, setApprovedTaskTitle] = useState("");
-  const [isApproving, setIsApproving] = useState<string | null>(null);
   const [userMetadata, setUserMetadata] = useState<{
     full_name: string;
     avatar?: string;
@@ -103,6 +97,7 @@ export default function ProfilePage() {
     }
   }, [isConnected, walletAddress]);
 
+  // Filter tasks based on active tab
   const createdTasks = userTasks.filter((task) => task.owner === walletAddress);
   const workingOnTasks = userTasks.filter(
     (task) => task.executor === walletAddress
@@ -195,14 +190,7 @@ export default function ProfilePage() {
   const handleApproveWork = async (taskId: string) => {
     if (!walletAddress) return;
 
-    setIsApproving(taskId);
-    
     try {
-      const taskToApprove = createdTasks.find(task => task._id === taskId);
-      if (taskToApprove) {
-        setApprovedTaskTitle(taskToApprove.title);
-      }
-      
       const response = await fetch("/api/tasks/approve", {
         method: "POST",
         headers: {
@@ -230,29 +218,17 @@ export default function ProfilePage() {
       const refreshedTasks = await refreshResponse.json();
       setUserTasks(refreshedTasks);
 
-      // Show success popup instead of alert
-      setShowApproveSuccessPopup(true);
+      alert("Task approved successfully!");
     } catch (err) {
       console.error("Error approving task:", err);
       alert(err instanceof Error ? err.message : "Failed to approve task");
-    } finally {
-      // Clear loading state
-      setIsApproving(null);
     }
   };
 
   const handleSubmitWork = async (taskId: string) => {
     if (!walletAddress) return;
 
-    // Set loading state for this specific task
-    setIsSubmitting(taskId);
-
     try {
-      const taskToSubmit = workingOnTasks.find((task) => task._id === taskId);
-      if (taskToSubmit) {
-        setSubmittedTaskTitle(taskToSubmit.title);
-      }
-
       const response = await fetch("/api/tasks/approve", {
         method: "POST",
         headers: {
@@ -269,6 +245,7 @@ export default function ProfilePage() {
         throw new Error(errorData.error || "Failed to submit work");
       }
 
+      // Refresh tasks after successful submission
       const refreshResponse = await fetch(
         `/api/tasks/user?user_address=${walletAddress}`
       );
@@ -279,44 +256,12 @@ export default function ProfilePage() {
       const refreshedTasks = await refreshResponse.json();
       setUserTasks(refreshedTasks);
 
-      setShowSubmitSuccessPopup(true);
+      alert("Work submitted successfully!");
     } catch (err) {
       console.error("Error submitting work:", err);
       alert(err instanceof Error ? err.message : "Failed to submit work");
-    } finally {
-      setIsSubmitting(null);
     }
   };
-
-  useEffect(() => {
-    if (showSubmitSuccessPopup) {
-      document.body.style.overflow = "hidden";
-      document.body.style.paddingRight = "var(--scrollbar-width, 0px)";
-    } else {
-      document.body.style.overflow = "";
-      document.body.style.paddingRight = "";
-    }
-
-    return () => {
-      document.body.style.overflow = "";
-      document.body.style.paddingRight = "";
-    };
-  }, [showSubmitSuccessPopup]);
-
-  useEffect(() => {
-    if (showApproveSuccessPopup) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.paddingRight = 'var(--scrollbar-width, 0px)';
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-    }
-    
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-    };
-  }, [showApproveSuccessPopup]);
 
   const openTaskDetails = (task: Task) => {
     setSelectedTask(task);
@@ -348,46 +293,29 @@ export default function ProfilePage() {
           >
             <Card className="sticky top-24">
               <div className="flex flex-col items-center text-center">
-                {user?.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.forecaster_nickname || "Profile"}
-                    className="w-20 h-20 rounded-full object-cover mb-4"
-                  />
-                ) : (
-                  <div className="w-20 h-20 rounded-full bg-yellow-400 flex items-center justify-center text-2xl font-bold text-gray-900 mb-4">
-                    {walletAddress ? walletAddress.charAt(2).toUpperCase() : "?"}
-                  </div>
-                )}
+                <div className="w-20 h-20 rounded-full bg-yellow-400 flex items-center justify-center text-2xl font-bold text-gray-900 mb-4">
+                  {userMetadata?.avatar ? (
+                    <img
+                      src={userMetadata.avatar}
+                      alt={userMetadata.full_name}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    walletAddress ? walletAddress.charAt(2).toUpperCase() : "?"
+                  )}
+                </div>
 
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-                  {user?.forecaster_nickname ||
-                    (walletAddress
-                      ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
-                      : "Unknown User")}
+                  {userMetadata?.full_name || (walletAddress
+                    ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+                    : "Unknown User")}
                 </h2>
 
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 break-all max-w-full overflow-hidden">
                   {walletAddress
                     ? `${walletAddress.slice(0, 10)}...${walletAddress.slice(-8)}`
                     : ""}
-                </p>
-
-                {user?.forecaster_id && (
-                  <p className="text-sm text-amber-600 dark:text-amber-400 mb-4">
-                    Farcaster ID: {user.forecaster_id}
-                  </p>
-                )}
-
-                {/* Replace Edit Profile button with Disconnect button */}
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  fullWidth
-                  onClick={() => disconnect()}
-                >
-                  Disconnect Wallet
-                </Button>
+                </p>          
               </div>
 
               <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
@@ -439,15 +367,10 @@ export default function ProfilePage() {
                   {isLoading
                     ? "Loading..."
                     : error
-                    ? "Error loading data"
-                    : userTasks.length > 0
-                    ? `Member since ${new Date(
-                        userTasks[0].created_at
-                      ).toLocaleDateString("en-US", {
-                        month: "long",
-                        year: "numeric",
-                      })}`
-                    : "New member"}
+                      ? "Error loading data"
+                      : userTasks.length > 0
+                        ? `Member since ${new Date(userTasks[0].created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })}`
+                        : "New member"}
                 </p>
               </div>
             </Card>
@@ -460,6 +383,7 @@ export default function ProfilePage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="lg:col-span-3"
           >
+            {/* Tabs - Fix for mobile */}
             <div className="mb-6 border-b border-gray-200 dark:border-gray-800 overflow-x-auto pb-1">
               <div className="flex space-x-8 min-w-max">
                 <button
@@ -601,15 +525,15 @@ export default function ProfilePage() {
                                   task.owner_approved && task.executor_approved
                                     ? "secondary"
                                     : task.executor_approved
-                                    ? "primary"
-                                    : "ghost"
+                                      ? "primary"
+                                      : "ghost"
                                 }
                                 size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
+                                onClick={() => {
                                   if (
                                     task.executor === null ||
-                                    (task.owner_approved && task.executor_approved) ||
+                                    (task.owner_approved &&
+                                      task.executor_approved) ||
                                     !task.executor_approved
                                   ) {
                                     openTaskDetails(task);
@@ -617,17 +541,15 @@ export default function ProfilePage() {
                                     handleApproveWork(task._id);
                                   }
                                 }}
-                                loading={isApproving === task._id}
-                                disabled={isApproving !== null}
                               >
                                 {task.executor === null
                                   ? "View Details"
                                   : task.owner_approved &&
-                                    task.executor_approved
-                                  ? "View Result"
-                                  : task.executor_approved
-                                  ? isApproving === task._id ? "Approving..." : "Approve Work"
-                                  : "View Details"}
+                                      task.executor_approved
+                                    ? "View Result"
+                                    : task.executor_approved
+                                      ? "Approve Work"
+                                      : "View Details"}
                               </Button>
                             </div>
                           </Card>
@@ -737,8 +659,7 @@ export default function ProfilePage() {
                                     ? "ghost"
                                     : "primary"
                                 }
-                                onClick={(e) => {
-                                  e.stopPropagation(); 
+                                onClick={() => {
                                   if (
                                     (task.owner_approved &&
                                       task.executor_approved) ||
@@ -749,15 +670,11 @@ export default function ProfilePage() {
                                     handleSubmitWork(task._id);
                                   }
                                 }}
-                                loading={isSubmitting === task._id}
-                                disabled={isSubmitting !== null}
                               >
                                 {(task.owner_approved &&
                                   task.executor_approved) ||
                                 task.executor_approved
                                   ? "View Details"
-                                  : isSubmitting === task._id
-                                  ? "Submitting..."
                                   : "Submit Work"}
                               </Button>
                             </div>
@@ -786,111 +703,6 @@ export default function ProfilePage() {
           </motion.div>
         </div>
       </div>
-
-      {/* Approve Work Success Popup */}
-      <AnimatePresence>
-        {showApproveSuccessPopup && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-md w-full shadow-xl card-content"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="text-center mb-6">
-                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900 mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-500 dark:text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Work Approved Successfully!</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-1">
-                  You've approved the work for <span className="font-medium truncate inline-block max-w-[200px] align-bottom overflow-hidden">{approvedTaskTitle}</span>.
-                </p>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Payment will be processed and released to the freelancer.
-                </p>
-              </div>
-              
-              <div className="flex justify-center">
-                <Button 
-                  variant="primary" 
-                  onClick={() => setShowApproveSuccessPopup(false)}
-                >
-                  OK
-                </Button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Submit Work Success Popup */}
-      <AnimatePresence>
-        {showSubmitSuccessPopup && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-md w-full shadow-xl card-content"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="text-center mb-6">
-                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900 mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-green-500 dark:text-green-300"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                  Work Submitted Successfully!
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-1">
-                  You've submitted your work for{" "}
-                  <span className="font-medium truncate inline-block max-w-[200px] align-bottom overflow-hidden">
-                    {submittedTaskTitle}
-                  </span>
-                  .
-                </p>
-                <p className="text-gray-600 dark:text-gray-400">
-                  The client will review your submission and approve it if satisfied.
-                </p>
-              </div>
-
-              <div className="flex justify-center">
-                <Button
-                  variant="primary"
-                  onClick={() => setShowSubmitSuccessPopup(false)}
-                >
-                  OK
-                </Button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Task Details Modal */}
       <TaskDetailsModal
