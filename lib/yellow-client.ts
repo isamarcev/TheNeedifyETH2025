@@ -36,6 +36,20 @@ type Participant = {
   amount: number;
 };
 
+
+function getHexFromZalupaFrontend (payload: RequestData | ResponsePayload) {
+  try {
+    const messageBytes = ethers.utils.arrayify(
+      ethers.utils.id(JSON.stringify(payload))
+    );
+    return messageBytes;
+  }
+  catch (error) {
+    throw error;
+  }
+}
+
+
 function createMessageSigner(wallet: Wallet) {
   return async (payload: RequestData | ResponsePayload): Promise<Hex> => {
     try {
@@ -44,9 +58,9 @@ function createMessageSigner(wallet: Wallet) {
       );
 
       const flatSignature = await wallet._signingKey().signDigest(messageBytes);
-
+      console.log(flatSignature, "\n\n");
       const signature = ethers.utils.joinSignature(flatSignature);
-
+      console.log(signature);
       return signature as Hex;
     } catch (error) {
       console.error("Error signing message:", error);
@@ -141,7 +155,7 @@ export async function authUser(
  * @param participantB - has 0 vote weight
  * @param jwt -- last valid JWT
  * @param nodeAddress -- by deault, DEFAULT
- * @returns 
+ * @returns     
  */
 export async function createApplicationSession(
   participantA: Participant,
